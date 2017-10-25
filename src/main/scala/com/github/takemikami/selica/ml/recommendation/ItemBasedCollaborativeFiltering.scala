@@ -17,9 +17,8 @@ package com.github.takemikami.selica.ml.recommendation
 
 import org.apache.spark.ml.feature.{IndexToString, StringIndexer, StringIndexerModel}
 import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.ml.param.{ParamMap, Params}
+import org.apache.spark.ml.param._
 import org.apache.spark.ml.{Estimator, Model}
-import org.apache.spark.ml.param.Param
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
 import org.apache.spark.mllib.linalg.{DenseMatrix, Vectors => OldVectors}
@@ -37,12 +36,14 @@ private[recommendation] trait ItemBasedCollaborativeFilteringModelParams extends
   val ratingCol = new Param[String](this, "ratingCol", "column name for ratings")
   val predictionCol = new Param[String](this, "predictionCol", "column name for predicted ratings")
 
-  setDefault(userCol, "userId")
-  setDefault(itemCol, "itemId")
-  setDefault(userIndexCol, "userIndex")
-  setDefault(itemIndexCol, "itemIndex")
-  setDefault(ratingCol, "rating")
-  setDefault(predictionCol, "prediction")
+  setDefault(
+    userCol -> "userId",
+    itemCol -> "itemId",
+    userIndexCol -> "userIndex",
+    itemIndexCol -> "itemIndex",
+    ratingCol -> "rating",
+    predictionCol -> "prediction"
+  )
 }
 
 class ItemBasedCollaborativeFilteringModel (override val uid: String, val itemSimilarity: CoordinateMatrix, val itemIndex: StringIndexerModel)
@@ -155,6 +156,10 @@ class ItemBasedCollaborativeFilteringModel (override val uid: String, val itemSi
 
 // Collaborative Filtering Trainer
 private[recommendation] trait ItemBasedCollaborativeFilteringParams extends ItemBasedCollaborativeFilteringModelParams {
+  val bruteForce = new BooleanParam(this, "bruteForce", "Compute similar columns perfectly, with brute force. (DIMSUM if false)")
+  val threshold = new DoubleParam(this, "threshold", "dimsum threshold.")
+
+  setDefault(bruteForce -> false, threshold -> 0.1)
 }
 
 class ItemBasedCollaborativeFiltering (override val uid: String)
@@ -168,6 +173,8 @@ class ItemBasedCollaborativeFiltering (override val uid: String)
   def setUserIndexCol(value: String): this.type = set(userIndexCol, value)
   def setItemIndexCol(value: String): this.type = set(itemIndexCol, value)
   def setRatingCol(value: String): this.type = set(ratingCol, value)
+  def setBruteForce(value: Boolean): this.type = set(bruteForce, value)
+  def setThreshold(value: Double): this.type = set(threshold, value)
 
   override def fit(dataset: Dataset[_]): ItemBasedCollaborativeFilteringModel = {
     val itemIndexer = new StringIndexer().setInputCol($(itemCol)).setOutputCol($(itemIndexCol))
@@ -176,7 +183,7 @@ class ItemBasedCollaborativeFiltering (override val uid: String)
     val userIndex = userIndexer.fit(dataset)
     val df = userIndex.transform(itemIndex.transform(dataset))
 
-    val similarityMatrix = CosineSimilarity.train(df, $(itemIndexCol), $(userIndexCol), $(ratingCol))
+    val similarityMatrix = CosineSimilarity.train(df, $(itemIndexCol), $(userIndexCol), $(ratingCol), $(threshold), $(bruteForce))
 
     val model = new ItemBasedCollaborativeFilteringModel(uid, similarityMatrix, itemIndex)
     copyValues(model)

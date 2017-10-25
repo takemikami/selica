@@ -26,8 +26,16 @@ trait Similarity {
   def train(dataset: DataFrame, baseColumn: String, featureSampleColumn: String, scoreColumn: String): CoordinateMatrix
 }
 
-object CosineSimilarity extends Similarity {
-  override def train(dataset: DataFrame, baseColumn: String, featureSampleColumn: String, scoreColumn: String): CoordinateMatrix = {
+object CosineSimilarity {
+  def train(
+             dataset: DataFrame,
+             baseColumn: String,
+             featureSampleColumn: String,
+             scoreColumn: String,
+             threshold: Double = 0.1,
+             bruteforce: Boolean = false
+           ): CoordinateMatrix = {
+
     val baseColumnIdx = dataset.schema.fieldIndex(baseColumn)
     val featureSampleColumnIdx = dataset.schema.fieldIndex(featureSampleColumn)
     val scoreColumnIdx = dataset.schema.fieldIndex(scoreColumn)
@@ -44,6 +52,11 @@ object CosineSimilarity extends Similarity {
       v:(Int,Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(baseSize, v._2))
     }
     val mat = new OldRawMatrix(featureRdd)
-    mat.columnSimilarities()
+
+    if (bruteforce) {
+      mat.columnSimilarities() // brute force compute
+    } else {
+      mat.columnSimilarities(threshold) // DIMSUM
+    }
   }
 }

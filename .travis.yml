@@ -4,6 +4,10 @@ scala:
 jdk:
   - oraclejdk8
 
+env:
+  global:
+    - secure: "fJAbibF1KZrm42PTzKAdPdxJMY6USqpDx7dDWLgGczRCdjUzmlJ5O7V6WFc2m8Hi2QOzz3ckwsiEHiX2AqTqNgSJFJCLccbCcXT1u23lLN8LSQMlQ+F8Sv+RqL9UvhDYpa/mzCEemh09wGtRqkokQzN1IndKKYo9SwJTOLBBf7sQMh3KejuzczC96jBx99150g7zz701hBMqL4+FeVmvZMn/fkFhA+nUi/P8oPYpkdGNqDjzgLONW3VKuZWe8G+XohCmdFLIccbs3/kfq7xbN/UeM0aqnObhwW5dl6SegdrwUfu2y3Rq4sO9Za7BySpsrPM6f6BtQoHr48n7QncE68Y7Gh0GFeG31oSNpZJoe+0ZRQJc7nHRiOR2eyv9X1CPi+lNkxuyI6sSBhbVsSt3LOxNUegKZqL7ZEMmoPuB9V3BhjACfdj/h6ZIhV9cT0dOrT4a6oY44G1pe66XFBW1UQVdQ9M5xzAhvzOUUw3DqPjrN6wAEZYP0nPXp8XWEKtuJkkzN81ksIv6BkoB3DQDmoZVtPgrft/wUMbGR+x12VajnwMfxhJQkffjZ0lTvjOYvwUCFyOmw2Lq/pEpAx1GhD51sErCvgu8CqS8HtgNJ63D4mDCzThW/wrVccp2e7AszQ8kYxzbH6Aekby5klyNOzTW9ItWP16ViPVCDVEr0nk="
+
 cache:
   directories:
     - $HOME/.ivy2/cache
@@ -15,3 +19,6 @@ script:
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+after_success:
+  - .travis/push-scaladoc-to-gh-pages.sh

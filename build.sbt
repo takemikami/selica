@@ -14,6 +14,7 @@ lazy val root = (project in file(".")).
     )),
     name := Name,
     libraryDependencies ++= Seq (
+      "com.atilika.kuromoji" % "kuromoji-ipadic" % "0.9.0",
       scalaTest % Test,
       "org.apache.spark" %% "spark-mllib" % SparkVersion % "provided"
     )

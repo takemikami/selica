@@ -6,6 +6,8 @@ selica - Spark mllib Extend Library Implements Calculation Algorithm.
 It's original library of Apache Spark MLlib, for my own use. and it's still developing.
 
 [![Build Status](https://travis-ci.org/takemikami/selica.svg?branch=cf)](https://travis-ci.org/takemikami/selica)
+[![Scaladoc](https://img.shields.io/badge/scaladoc-here-yellowgreen.svg)](https://takemikami.github.io/selica/scaladoc)
+[![Gitbook](https://img.shields.io/badge/gitbook-here-yellowgreen.svg)](https://takemikami.gitbooks.io/selica-programming-guide/content/en/)
 
 # Overview
 

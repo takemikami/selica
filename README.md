@@ -14,7 +14,7 @@ It's original library of Apache Spark MLlib, for my own use. and it's still deve
 selica implements following algorithm.
 
 - item-based collaborative filtering recommendation
-
+- Japanse tokenizer by kuromoji and IPADIC
 
 # Getting Started
 
@@ -23,13 +23,13 @@ build selica.
 ```
 $ git clone git@github.com:takemikami/selica.git
 $ cd selica
-$ sbt package
+$ sbt assembly
 ```
 
 execute spark-shell with selica.
 
 ```
-$ spark-shell --jars target/scala-2.11/selica_2.11-0.0.1-SNAPSHOT.jar
+$ spark-shell --jars target/scala-2.11/selica-assembly-0.0.1-SNAPSHOT.jar
 ```
 
 execute sample.

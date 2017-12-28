@@ -4,7 +4,7 @@ val SparkVersion = "2.2.0"
 
 organization := "com.github.takemikami"
 name         := "selica"
-version      := "0.0.1-SNAPSHOT"
+version      := "0.0.1"
 
 scalaVersion := "2.11.11"
 

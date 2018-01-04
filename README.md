@@ -6,7 +6,7 @@ selica - Spark mllib Extend Library Implements Calculation Algorithm.
 It's original library of Apache Spark MLlib, for my own use. and it's still developing.
 
 [![Build Status](https://travis-ci.org/takemikami/selica.svg?branch=cf)](https://travis-ci.org/takemikami/selica)
-[![Scaladoc](https://img.shields.io/badge/scaladoc-here-yellowgreen.svg)](https://takemikami.github.io/selica/scaladoc)
+[![Scaladoc](https://img.shields.io/badge/scaladoc-here-yellowgreen.svg)](http://javadoc.io/doc/com.github.takemikami/selica_2.11/)
 [![Gitbook](https://img.shields.io/badge/gitbook-here-yellowgreen.svg)](https://takemikami.gitbooks.io/selica-programming-guide/content/en/)
 
 # Overview
@@ -18,18 +18,12 @@ selica implements following algorithm.
 
 # Getting Started
 
-build selica.
-
-```
-$ git clone git@github.com:takemikami/selica.git
-$ cd selica
-$ sbt assembly
-```
+## Execute example
 
 execute spark-shell with selica.
 
 ```
-$ spark-shell --jars target/scala-2.11/selica-assembly-0.0.1-SNAPSHOT.jar
+$ spark-shell --repositories https://oss.sonatype.org/content/repositories/releases --packages com.github.takemikami:selica_2.11:0.0.1
 ```
 
 execute sample.
@@ -56,3 +50,21 @@ df.show()
 // dump item similarity
 model.similarityDataFrame.show()
 ```
+
+## Build and execute
+
+build selica.
+
+```
+$ git clone git@github.com:takemikami/selica.git
+$ cd selica
+$ sbt assembly
+```
+
+execute spark-shell with selica.
+
+```
+$ spark-shell --jars target/scala-2.11/selica-assembly-*-SNAPSHOT.jar
+```
+
+and then execute example.

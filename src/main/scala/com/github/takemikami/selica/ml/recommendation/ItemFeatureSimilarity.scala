@@ -1,0 +1,119 @@
+/*
+ * Copyright (C) 2018 Takeshi Mikami.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.github.takemikami.selica.ml.recommendation
+
+import org.apache.spark.ml.feature.{IndexToString, StringIndexer, StringIndexerModel}
+import org.apache.spark.ml.param._
+import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.ml.{Estimator, Model}
+import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
+import org.apache.spark.mllib.linalg.{DenseMatrix, Vectors => OldVectors}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.apache.spark.sql.types.{ArrayType, NumericType, StringType, StructType}
+import org.apache.spark.mllib.linalg.distributed.{RowMatrix => OldRawMatrix}
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, Vectors}
+import org.apache.spark.sql.functions.udf
+
+// Item Feature Similarity Model
+private[recommendation] trait ItemFeatureSimilarityModelParams extends Params {
+  val itemCol = new Param[String](this, "itemCol", "column name for item ids. Ids must be within the string value range.")
+  val itemIndexCol = new Param[String](this, "itemIndexCol", "column index for item ids. model internal use.")
+  val featuresCol = new Param[String](this, "featuresCol", "column name for features. (SparseVector or WrappedArray)")
+
+  setDefault(
+    itemCol -> "itemId",
+    itemIndexCol -> "itemIndex",
+    featuresCol -> "fetures"
+  )
+}
+
+class ItemFeatureSimilarityModel (override val uid: String, val itemSimilarity: CoordinateMatrix, val itemIndex: StringIndexerModel)
+  extends Model[ItemFeatureSimilarityModel]
+    with ItemFeatureSimilarityModelParams {
+
+  lazy val similarityDataFrame: DataFrame = {
+    val itemIdColumn: Int => String = itemIndex.labels(_)
+    val itemIdUDF = udf(itemIdColumn)
+
+    val spark = SparkSession
+      .builder
+      .appName("SparkCF")
+      .getOrCreate()
+    import spark.implicits._
+    val entries = itemSimilarity.entries.map(e => (e.i, e.j, e.value)).toDF("item_i_index", "item_j_index", "similarity")
+
+    entries
+      .withColumn("item_i", itemIdUDF('item_i_index))
+      .withColumn("item_j", itemIdUDF('item_j_index))
+      .select("item_i", "item_j", "similarity")
+  }
+  override def copy(extra: ParamMap): ItemFeatureSimilarityModel = {
+    val copied = new ItemFeatureSimilarityModel(uid, itemSimilarity, itemIndex)
+    copyValues(copied, extra).setParent(parent)
+  }
+
+  override def transform(dataset: Dataset[_]): DataFrame = ???
+
+  override def transformSchema(schema: StructType): StructType = ???
+}
+
+// Item Feature Similarity Trainer
+private[recommendation] trait ItemFeatureSimilarityParams extends ItemFeatureSimilarityModelParams {
+}
+
+class ItemFeatureSimilarity (override val uid: String)
+  extends Estimator[ItemFeatureSimilarityModel]
+    with ItemFeatureSimilarityParams {
+
+  def this() = this(Identifiable.randomUID("itemfeaturesimilarity"))
+
+  def setItemCol(value: String): this.type = set(itemCol, value)
+  def setItemIndexCol(value: String): this.type = set(itemIndexCol, value)
+  def setFeaturesCol(value: String): this.type = set(featuresCol, value)
+
+  override def fit(dataset: Dataset[_]): ItemFeatureSimilarityModel = {
+    val itemIndexer = new StringIndexer().setInputCol($(itemCol)).setOutputCol($(itemIndexCol))
+    val itemIndex = itemIndexer.fit(dataset)
+    val df = itemIndex.transform(dataset)
+    val itemsize = df.count().toInt
+
+    val featureRdd = df.select($(itemIndexCol), $(featuresCol)).rdd.map { row =>
+      row(1) match {
+        case vec: SparseVector =>
+          vec.indices.zipWithIndex.map { case (vi, num) => (vi, row(0) match {case d:Double => d.toInt }, vec.values(num)) }.toList
+        case vec: DenseVector =>
+          vec.toArray.zipWithIndex.map { case (v, num) => (num, row(0) match {case d:Double => d.toInt }, v) }.toList
+        case ary: scala.collection.mutable.WrappedArray[org.apache.spark.ml.linalg.DenseVector] =>
+          ary.zipWithIndex.map { case (vv, vi) => (vi, row(0) match {case d:Double => d.toInt }, vv(0)) }.toList
+      }
+    }.flatMap(f => f).map(e => e._1 -> Seq((e._2, e._3))).reduceByKey((k, v) => k ++ v).map {
+      v:(Int,Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(itemsize, v._2))
+    }
+    val mat = new OldRawMatrix(featureRdd)
+    val similarityMatrix = mat.columnSimilarities()
+
+    val model = new ItemFeatureSimilarityModel(uid, similarityMatrix, itemIndex)
+    copyValues(model)
+  }
+
+  override def copy(extra: ParamMap): ItemFeatureSimilarity = defaultCopy(extra)
+
+  override def transformSchema(schema: StructType): StructType = {
+    require(schema($(itemCol)).dataType.isInstanceOf[StringType], "invalid type: " + schema($(itemCol)).dataType)
+    require(schema($(featuresCol)).dataType.isInstanceOf[ArrayType], "invalid type: " + schema($(featuresCol)).dataType)
+    StructType(schema.fields)
+  }
+}

@@ -17,6 +17,10 @@ libraryDependencies ++= Seq (
   "org.apache.spark" %% "spark-mllib" % SparkVersion % "provided"
 )
 
+// test
+coverageMinimum := 75
+coverageFailOnMinimum := true
+
 // publish information
 publishMavenStyle := true
 publishArtifact in Test := false

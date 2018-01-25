@@ -15,12 +15,17 @@
  */
 package com.github.takemikami.selica.ml.recommendation
 
-import org.apache.spark.sql.DataFrame
-import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
+import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.mllib.linalg.{Vectors => OldVectors}
-import org.apache.spark.mllib.linalg.distributed.{RowMatrix => OldRawMatrix}
+import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, RowMatrix => OldRawMatrix}
 import org.apache.spark.sql.functions._
+
+private[recommendation] trait ItemSimilarityModel {
+}
+
+private[recommendation] trait ItemSimilarity {
+}
 
 trait Similarity {
   def train(dataset: DataFrame, baseColumn: String, featureSampleColumn: String, scoreColumn: String): CoordinateMatrix

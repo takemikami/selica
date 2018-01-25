@@ -15,16 +15,15 @@
  */
 package com.github.takemikami.selica.ml.recommendation
 
+import org.apache.spark.ml.{Estimator, Model}
 import org.apache.spark.ml.feature.{IndexToString, StringIndexer, StringIndexerModel}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.ml.{Estimator, Model}
-import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, Vectors}
 import org.apache.spark.mllib.linalg.{DenseMatrix, Vectors => OldVectors}
+import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, RowMatrix => OldRawMatrix}
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.types.{ArrayType, NumericType, StringType, StructType}
-import org.apache.spark.mllib.linalg.distributed.{RowMatrix => OldRawMatrix}
-import org.apache.spark.ml.linalg.{DenseVector, SparseVector, Vectors}
 import org.apache.spark.sql.functions.udf
 
 // Item Feature Similarity Model

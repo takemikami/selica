@@ -23,8 +23,7 @@ import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
 import org.apache.spark.mllib.linalg.{DenseMatrix, Vectors => OldVectors}
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
-import org.apache.spark.sql.functions.max
-import org.apache.spark.sql.functions.udf
+import org.apache.spark.sql.functions.{max, udf}
 import org.apache.spark.sql.types._
 
 // Collaborative Filtering Model

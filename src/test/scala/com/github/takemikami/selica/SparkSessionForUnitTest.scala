@@ -14,7 +14,7 @@ object SparkSessionForUnitTest {
       .master(master)
       .appName(appName)
       .getOrCreate()
-    return sparkSession
+    sparkSession
   }
 
 }

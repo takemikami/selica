@@ -193,11 +193,10 @@ class ItemBasedCollaborativeFiltering (override val uid: String)
     }
     val baseSize = returnInt(df.agg((max($(itemIndexCol)))).head.get(0)) + 1
 
-    val ratingByUser = df.rdd.map{
+    val featureRdd = df.rdd.map{
       row => returnInt(row.get(userIndexColId)) -> Seq((returnInt(row.get(itemIndexColIdx)), row.getDouble(ratingColIdx)))
-    }
-    val featureRdd = ratingByUser.reduceByKey((k, v) => k ++ v).map{
-      v:(Int,Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(baseSize, v._2))
+    }.reduceByKey((k, v) => k ++ v).map{
+      case (_: Int, v: Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(baseSize, v))
     }
     val mat = new OldRawMatrix(featureRdd)
 

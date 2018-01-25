@@ -121,21 +121,22 @@ class ItemFeatureSimilarity (override val uid: String)
     val itemsize = df.count().toInt
 
     val featureRdd = df.select($(itemIndexCol), $(featuresCol)).rdd.map { row =>
+      val itemIdx = row(0) match {case d:Double => d.toInt }
       row(1) match {
         case vec: SparseVector =>
-          vec.indices.zipWithIndex.map { case (vi, num) => (vi, row(0) match {case d:Double => d.toInt }, vec.values(num)) }.toList
+          vec.indices.zipWithIndex.map { case (vi, num) => (vi, itemIdx, vec.values(num)) }.toList
         case vec: DenseVector =>
-          vec.toArray.zipWithIndex.map { case (v, num) => (num, row(0) match {case d:Double => d.toInt }, v) }.toList
+          vec.toArray.zipWithIndex.map { case (v, num) => (num, itemIdx, v) }.toList
         case ary: scala.collection.mutable.WrappedArray[org.apache.spark.ml.linalg.DenseVector] =>
-          ary.zipWithIndex.map { case (vv, vi) => (vi, row(0) match {case d:Double => d.toInt }, vv(0)) }.toList
+          ary.zipWithIndex.map { case (vv, vi) => (vi, itemIdx, vv(0)) }.toList
       }
     }.flatMap(f => f).map(e => e._1 -> Seq((e._2, e._3))).reduceByKey((k, v) => k ++ v).map {
-      v:(Int,Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(itemsize, v._2))
+      case (_: Int, v: Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(itemsize, v))
     }
     val mat = new OldRawMatrix(featureRdd)
 
-    // brute force compute or DIMSUM
-    val similarityMatrix = if ($(bruteForce)) mat.columnSimilarities($(threshold)) else mat.columnSimilarities()
+    // compute by brute force(=0.0) or DIMSUM
+    val similarityMatrix = mat.columnSimilarities(if ($(bruteForce)) 0.0 else $(threshold))
 
     val model = new ItemFeatureSimilarityModel(uid, similarityMatrix, itemIndex)
     copyValues(model)

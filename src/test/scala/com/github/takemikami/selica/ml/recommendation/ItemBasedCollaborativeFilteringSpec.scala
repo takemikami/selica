@@ -48,6 +48,11 @@ class ItemBasedCollaborativeFilteringSpec extends FlatSpec with BeforeAndAfter {
     df.columns.contains("userId") shouldEqual true
     df.columns.contains("itemId") shouldEqual true
     df.columns.contains("pred") shouldEqual true
+
+    // get similarity matrix
+    println(model.similarityDataFrame.select("item_i", "item_j").show())
+    model.similarityDataFrame.select("item_i").distinct().count() shouldEqual 3 - 1
+    model.similarityDataFrame.select("item_j").distinct().count() shouldEqual 3 - 1
   }
 
   "ItemBasedCollaborativeFiltering" should "can bruteforce compute" in {

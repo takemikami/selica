@@ -20,8 +20,8 @@ import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.{Estimator, Model}
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.mllib.linalg.distributed.CoordinateMatrix
 import org.apache.spark.mllib.linalg.{DenseMatrix, Vectors => OldVectors}
+import org.apache.spark.mllib.linalg.distributed.{CoordinateMatrix, RowMatrix => OldRawMatrix}
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import org.apache.spark.sql.functions.{max, udf}
 import org.apache.spark.sql.types._
@@ -145,8 +145,8 @@ class ItemBasedCollaborativeFilteringModel (override val uid: String, val itemSi
     require(schema($(userCol)).dataType.isInstanceOf[StringType], "invalid type: " + schema($(userCol)).dataType)
     require(schema($(itemCol)).dataType.isInstanceOf[StringType], "invalid type: " + schema($(itemCol)).dataType)
     require(schema($(ratingCol)).dataType.isInstanceOf[NumericType], "invalid type: " + schema($(ratingCol)).dataType)
-    require(!schema.fieldNames.contains($(predictionCol)), s"already exists: ${userIndexCol}")
-    require(!schema.fieldNames.contains($(predictionCol)), s"already exists: ${itemIndexCol}")
+    require(!schema.fieldNames.contains($(userIndexCol)), s"already exists: ${userIndexCol}")
+    require(!schema.fieldNames.contains($(itemIndexCol)), s"already exists: ${itemIndexCol}")
     require(!schema.fieldNames.contains($(predictionCol)), s"already exists: ${predictionCol}")
     StructType(schema.fields :+ StructField($(predictionCol), FloatType, false))
   }
@@ -182,7 +182,27 @@ class ItemBasedCollaborativeFiltering (override val uid: String)
     val userIndex = userIndexer.fit(dataset)
     val df = userIndex.transform(itemIndex.transform(dataset))
 
-    val similarityMatrix = CosineSimilarity.train(df, $(itemIndexCol), $(userIndexCol), $(ratingCol), $(threshold), $(bruteForce))
+    // compute cosine similarity
+    val itemIndexColIdx = df.schema.fieldIndex($(itemIndexCol))
+    val userIndexColId = df.schema.fieldIndex($(userIndexCol))
+    val ratingColIdx = df.schema.fieldIndex($(ratingCol))
+
+    def returnInt(v: Any) = v match {
+      case v: Double => v.toInt
+      case v: Int => v
+    }
+    val baseSize = returnInt(df.agg((max($(itemIndexCol)))).head.get(0)) + 1
+
+    val ratingByUser = df.rdd.map{
+      row => returnInt(row.get(userIndexColId)) -> Seq((returnInt(row.get(itemIndexColIdx)), row.getDouble(ratingColIdx)))
+    }
+    val featureRdd = ratingByUser.reduceByKey((k, v) => k ++ v).map{
+      v:(Int,Seq[(Int, Double)]) => OldVectors.fromML(Vectors.sparse(baseSize, v._2))
+    }
+    val mat = new OldRawMatrix(featureRdd)
+
+    // brute force compute or DIMSUM
+    val similarityMatrix = if ($(bruteForce)) mat.columnSimilarities($(threshold)) else mat.columnSimilarities()
 
     val model = new ItemBasedCollaborativeFilteringModel(uid, similarityMatrix, itemIndex)
     copyValues(model)

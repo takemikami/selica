@@ -50,6 +50,22 @@ class ItemFeatureSimilaritySpec extends FlatSpec with BeforeAndAfter {
       row(0) match { case x: Double => (x <= 1) shouldEqual true }
     }
 
+    // brute force compute
+    val ifsBf = new com.github.takemikami.selica.ml.recommendation.ItemFeatureSimilarity()
+      .setItemCol("itemId")
+      .setFeaturesCol("features")
+      .setBruteForce(true)
+    val modelBf = ifsBf.fit(ratings)
+
+    // transform
+    val df = model
+      .setNearestItemCol("nearestItems")
+      .transform(ratings)
+    df.collect()
+    df.show()
+
+    df.columns.contains("nearestItems") shouldEqual true
+    df.columns.contains("itemId") shouldEqual true
   }
 
   "ItemFeatureSimilarity" should "can fitting by densevector features" in {

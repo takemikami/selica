@@ -15,8 +15,7 @@
  */
 package com.github.takemikami.selica.ml.feature
 
-import com.atilika.kuromoji.ipadic.Token
-import com.atilika.kuromoji.ipadic.Tokenizer
+import com.atilika.kuromoji.ipadic.{Token, Tokenizer}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.UnaryTransformer
 import org.apache.spark.sql.types.{ArrayType, DataType, StringType}
@@ -38,6 +37,6 @@ object JapaneseTokenizer {
   def tokenize(sentence: String): Array[String] = {
     val tokens = tokenizer.tokenize(sentence).toArray
     val words = for (t <- tokens; token = t.asInstanceOf[Token]) yield token.getSurface
-    return words
+    words
   }
 }

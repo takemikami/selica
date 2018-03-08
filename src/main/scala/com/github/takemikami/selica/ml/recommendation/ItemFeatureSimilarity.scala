@@ -146,7 +146,9 @@ class ItemFeatureSimilarity (override val uid: String)
 
   override def transformSchema(schema: StructType): StructType = {
     require(schema($(itemCol)).dataType.isInstanceOf[StringType], "invalid type: " + schema($(itemCol)).dataType)
-    require(schema($(featuresCol)).dataType.isInstanceOf[ArrayType], "invalid type: " + schema($(featuresCol)).dataType)
+    if (schema($(featuresCol)).dataType != org.apache.spark.ml.linalg.SQLDataTypes.VectorType) {
+      throw new IllegalArgumentException(s"invalid type: " + schema($(featuresCol)).dataType)
+    }
     StructType(schema.fields)
   }
 }

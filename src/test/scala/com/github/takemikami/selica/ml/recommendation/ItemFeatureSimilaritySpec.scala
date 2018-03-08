@@ -114,4 +114,32 @@ class ItemFeatureSimilaritySpec extends FlatSpec with BeforeAndAfter {
 
   }
 
+  "ItemFeatureSimilarity" should "have required column" in {
+    val spark = sparkSession
+    import spark.implicits._
+
+    val ratings = Seq(
+      ("i0", Vectors.sparse(3, Array(1, 2), Array(0.1, 0.2))),
+      ("i1", Vectors.sparse(3, Array(0, 2), Array(0.1, 0.2))),
+      ("i2", Vectors.sparse(3, Array(1, 2), Array(0.2, 0.2))),
+      ("i3", Vectors.sparse(3, Array(1, 2), Array(0.2, 0.2))),
+      ("i4", Vectors.sparse(3, Array(1, 2), Array(0.2, 0.2)))
+    )
+    val ifs = new com.github.takemikami.selica.ml.recommendation.ItemFeatureSimilarity()
+      .setItemCol("itemId")
+      .setFeaturesCol("features")
+
+    // fitting columns check
+    an[IllegalArgumentException] should be thrownBy ifs.transformSchema(ratings.toDF("non_itemId", "features").schema)
+    an[IllegalArgumentException] should be thrownBy ifs.transformSchema(ratings.toDF("itemId", "non_features").schema)
+    val schemaFitted = ifs.transformSchema(ratings.toDF("itemId", "features").schema)
+    val model = ifs.fit(ratings.toDF("itemId", "features")).setNearestItemCol("nearest")
+
+    // transform columns check
+    an[IllegalArgumentException] should be thrownBy model.transformSchema(ratings.toDF("non_itemId", "features").schema)
+    an[IllegalArgumentException] should be thrownBy model.transformSchema(ratings.toDF("itemId", "nearest").schema)
+    val schemaTransform = model.transformSchema(ratings.toDF("itemId", "features").schema)
+
+  }
+
 }

@@ -7,6 +7,7 @@ jdk:
 env:
   global:
     - secure: "Qe/AE3NndwXjGTWnJMrt41JYEijxgFNRd3eakjXE2RThMRANx/sUeJYbDYBXLpeoDOQtkVfU7VQ81mgWimD7CKqHA9qWMnP/QXYBWwNn7SIVgHWvYOnJe9LS2YW+4Oq8AKKIDVpO50r298S2e2Axcc0OLNAQanHXW96p/mjFpXm/JBr+4j6oRfOCcCwkfRh2Fe02nWQXz2ilu1INGXonZ/kgJ06VUItXjElm43JixuWTGbjGoVDQnXLdcN5+yQ3/Lo3zM5CcK1s92aDafZ6vqQoTvGCCQnDtZwU+yB80SMvaGa27Bxc3nmL2OH6L+rud4ovSl4Uf4LHR1jSZW/IrMfv1VHyuDmnUvXs1Ti8CTZ04s6FxtVrEWmnuNFrQIBcBOnAjdjGs2n5/zx2WrnDd+l8ldh9HavEf7AjOCpWie1sf2cRDSllPm270dh5Ws/MRDpLDl+E/eqP73N81TFyGztoaR2v65Cw2Og/hphTfPbEMy2GQGP1jBPYuHQVwR5tqTf6lGPcygjFek5ztiLzv+/ZRcJntnYvnOoK1d+6F1jAjLSElp+YPF5bnte7wHkVem8kg+ZgGrCx/kD+pQckuhpEyddXDvkoVdXUDS1uTvs/f8PjATghGszO7LCvdEmfZPLRmACqIkqn1jD5JcS/3Xmcw4Xfa3EtzWIF+phy+3BI="
+    - secure: "L6QBR/JMSVRYZukPLq/t8w8xdEAr1Glp1Ui3z7DK6e6621v9I0RURRpT92W+cbQAfCbeItexsYzwRRQSlYck1sj4ssTY0xqDmskt/X/HW3hw7jL+NfhHnByXF4lKgPmGZCK7jenlYHLrEuZneR7VA+mNocq8AKCrqG9GAY3DCVD3MuqKL1za6fC4ZRgKQF2mptQNnGG8XcQnvwqFICkLYcwrU0eq2LTW6FKLphrcjdHUxHizk4nBGt9A7zpUumVQ30hYvRftIHYHD1iZD7QJFWTAqndyauZECrCh+gkSdfbgMtB8szEnEhc1kB7eiMwZG8Rnmuptr3V4SVVwI8AVNkR6emqNnIZkOen13cOML2RhVOYrNaUguJl+32d8RDLoYeHwXMELIJ+YWL0ikfJKU5CeMPOwtZ25073sLaH8LQvWkEkVki7ofNfy6e+9GI3LWJRtMjendas4JBILOMaIpwnR9y7qzSWZJVfsegjEAi6lRRBalSyhNVZpBJqezfKDt+f+HCWfRv64o2Pe1sGHJTOPxs0DfgMShbtGR9TXKDHDJGuqyJvgt2i++6zyAKgABmVmN+RPIumIHAWcq4ZD9/PNwkNz+33H+bf2ahf9M6kMnpWxiGiVGTSduy0hCwXdRVBr7YpCBh7vteIHpHaa1nKV7oXOfpC/zuvhK+j5QlI="
 
 cache:
   directories:
@@ -14,7 +15,7 @@ cache:
     - $HOME/.sbt/boot
 
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION scalastyle scapegoat coverage test doc coverageReport
+  - sbt ++$TRAVIS_SCALA_VERSION scalastyle scapegoat coverage test doc coverageReport codacyCoverage
 
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm

@@ -130,7 +130,7 @@ class FrequentViewConversionPatternMining(override val uid: String)
     val consequenceItems = consequenceSupportMap.keySet
 
     // compute confidence
-    val ruleDF = dataset.select("antecedent", "consequent").rdd.map { t =>
+    val ruleDF = dataset.select($(antecedentCol), $(consequentCol)).rdd.map { t =>
       (t(0), t(1)) match {
         case (x: scala.collection.mutable.WrappedArray[Int], y: scala.collection.mutable.WrappedArray[Int]) => {
           val ac = x.map(a => if (antecedentItems.contains(a)) a else 0).filter {

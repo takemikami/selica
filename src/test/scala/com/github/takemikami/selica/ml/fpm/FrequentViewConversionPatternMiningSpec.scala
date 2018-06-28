@@ -60,6 +60,24 @@ class FrequentViewConversionPatternMiningSpec extends FlatSpec with BeforeAndAft
 
   }
 
+  "FrequentViewConversionPatternMining" should "can name column originally" in {
+    val spark = sparkSession
+    import spark.implicits._
+
+    val dataset = spark.createDataset(Seq(
+      (1, Array(1,2,3), Array(1)),
+      (1, Array(4,5,6), Array(4,6)),
+      (2, Array(2,3,4), Array(1))
+    )).toDF("userColumn", "antecedentColumn", "consequentColumn")
+
+    val fpm = new com.github.takemikami.selica.ml.fpm.FrequentViewConversionPatternMining()
+      .setAntecedentCol("antecedentColumn")
+      .setConsequentCol("consequentColumn")
+    val model = fpm.fit(dataset)
+
+    val predict = model.transform(dataset)
+  }
+
   "FrequentViewConversionPatternMining" should "can fit with minimal support confidence" in {
     val spark = sparkSession
     import spark.implicits._

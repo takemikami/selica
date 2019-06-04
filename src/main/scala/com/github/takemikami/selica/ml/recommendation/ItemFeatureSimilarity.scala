@@ -37,11 +37,12 @@ private[recommendation] trait ItemFeatureSimilarityModelParams extends Params {
   )
 }
 
-class ItemFeatureSimilarityModel (override val uid: String, val itemSimilarity: CoordinateMatrix, val itemIndex: StringIndexerModel)
+class ItemFeatureSimilarityModel(override val uid: String, val itemSimilarity: CoordinateMatrix, val itemIndex: StringIndexerModel)
   extends Model[ItemFeatureSimilarityModel]
     with ItemFeatureSimilarityModelParams {
 
   def setItemCol(value: String): this.type = set(itemCol, value)
+
   def setNearestItemCol(value: String): this.type = set(nearestItemsCol, value)
 
   lazy val similarityDataFrame: DataFrame = {
@@ -60,13 +61,14 @@ class ItemFeatureSimilarityModel (override val uid: String, val itemSimilarity: 
       .withColumn("item_j", itemIdUDF('item_j_index))
       .select("item_i", "item_j", "similarity")
   }
+
   override def copy(extra: ParamMap): ItemFeatureSimilarityModel = {
     val copied = new ItemFeatureSimilarityModel(uid, itemSimilarity, itemIndex)
     copyValues(copied, extra).setParent(parent)
   }
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    val listMapFlat = udf { values: Seq[Map[String,Double]] => values.flatten.toMap }
+    val listMapFlat = udf { values: Seq[Map[String, Double]] => values.flatten.toMap }
 
     val crossSimilarityDf = similarityDataFrame.withColumnRenamed("item_i", "item_x").withColumnRenamed("item_j", "item_y")
       .union(similarityDataFrame.withColumnRenamed("item_j", "item_x").withColumnRenamed("item_i", "item_y"))
@@ -102,16 +104,20 @@ private[recommendation] trait ItemFeatureSimilarityParams extends ItemFeatureSim
   )
 }
 
-class ItemFeatureSimilarity (override val uid: String)
+class ItemFeatureSimilarity(override val uid: String)
   extends Estimator[ItemFeatureSimilarityModel]
     with ItemFeatureSimilarityParams {
 
   def this() = this(Identifiable.randomUID("itemfeaturesimilarity"))
 
   def setItemCol(value: String): this.type = set(itemCol, value)
+
   def setItemIndexCol(value: String): this.type = set(itemIndexCol, value)
+
   def setFeaturesCol(value: String): this.type = set(featuresCol, value)
+
   def setBruteForce(value: Boolean): this.type = set(bruteForce, value)
+
   def setThreshold(value: Double): this.type = set(threshold, value)
 
   override def fit(dataset: Dataset[_]): ItemFeatureSimilarityModel = {
@@ -121,7 +127,9 @@ class ItemFeatureSimilarity (override val uid: String)
     val itemsize = df.count().toInt
 
     val featureRdd = df.select($(itemIndexCol), $(featuresCol)).rdd.map { row =>
-      val itemIdx = row(0) match {case d:Double => d.toInt }
+      val itemIdx = row(0) match {
+        case d: Double => d.toInt
+      }
       row(1) match {
         case vec: SparseVector =>
           vec.indices.zipWithIndex.map { case (vi, num) => (vi, itemIdx, vec.values(num)) }.toList
@@ -147,7 +155,7 @@ class ItemFeatureSimilarity (override val uid: String)
   override def transformSchema(schema: StructType): StructType = {
     require(schema($(itemCol)).dataType.isInstanceOf[StringType], "invalid type: " + schema($(itemCol)).dataType)
     if (schema($(featuresCol)).dataType != org.apache.spark.ml.linalg.SQLDataTypes.VectorType) {
-      throw new IllegalArgumentException(s"invalid type: " + schema($(featuresCol)).dataType)
+      throw new IllegalArgumentException("invalid type: " + schema($(featuresCol)).dataType)
     }
     StructType(schema.fields)
   }

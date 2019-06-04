@@ -1,12 +1,12 @@
 import Dependencies._
 
-val SparkVersion = "2.2.0"
+val SparkVersion = "2.4.3"
 
 organization := "com.github.takemikami"
 name         := "selica"
 version      := "0.0.3-SNAPSHOT"
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.8"
 
 licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 homepage := Some(url("https://github.com/takemikami/selica"))
@@ -18,6 +18,8 @@ libraryDependencies ++= Seq (
 )
 
 // test
+scapegoatVersion in ThisBuild := "1.3.8"
+scalaBinaryVersion in ThisBuild := "2.12"
 coverageMinimum := 75
 coverageFailOnMinimum := true
 

@@ -1,6 +1,6 @@
 language: scala
 scala:
-  - 2.11.11
+  - 2.12.8
 jdk:
   - oraclejdk8
 
@@ -15,7 +15,7 @@ cache:
     - $HOME/.sbt/boot
 
 script:
-  - sbt ++$TRAVIS_SCALA_VERSION scalastyle scapegoat coverage test doc coverageReport codacyCoverage
+  - sbt ++$TRAVIS_SCALA_VERSION scalastyle scapegoat coverage test doc coverageReport
 
   # Tricks to avoid unnecessary cache updates
   - find $HOME/.sbt -name "*.lock" | xargs rm

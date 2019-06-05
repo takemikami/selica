@@ -11,10 +11,13 @@ scalaVersion := "2.12.8"
 licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 homepage := Some(url("https://github.com/takemikami/selica"))
 
-libraryDependencies ++= Seq (
-  "com.atilika.kuromoji" % "kuromoji-ipadic" % "0.9.0",
-  scalaTest % Test,
-  "org.apache.spark" %% "spark-mllib" % SparkVersion % "provided"
+lazy val core = (project in file("core"))
+  .settings(
+    libraryDependencies ++= Seq (
+    "com.atilika.kuromoji" % "kuromoji-ipadic" % "0.9.0",
+    scalaTest % Test,
+    "org.apache.spark" %% "spark-mllib" % SparkVersion % "provided"
+  )
 )
 
 // test

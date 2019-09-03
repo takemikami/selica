@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8
+    environment:
+      SBT_VERSION: 1.0.4
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.sbt" }}
+            - v1-dependencies-
+      - run:
+          name: run tests
+          command: |
+            sbt scalastyle scapegoat coverage test doc coverageReport coveralls
+      - save_cache:
+          paths:
+            - "~/.sbt/boot"
+            - "~/.ivy2/cache"
+          key: v1-dependencies-{{ checksum "build.sbt" }}
+      - store_artifacts:
+          path: ~/repo/target/test-reports

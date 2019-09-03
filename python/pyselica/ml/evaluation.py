@@ -15,31 +15,26 @@ class ClusteringDiffEvaluator(Evaluator):
         self._metricName = metricName
 
     def _evaluate(self, dataset):
+        # count pair size
+        basePositive = self._baseDataset.alias("left") \
+            .join(self._baseDataset.alias("right"), self._basePredictionCol) \
+            .select(F.col("left.{}".format(self._baseIdCol)).alias("id1"),
+                    F.col("right.{}".format(self._baseIdCol)).alias("id2"))
+        predPositive = dataset.alias("left") \
+            .join(dataset.alias("right"), self._predictionCol) \
+            .select(F.col("left.{}".format(self._baseIdCol)).alias("id1"),
+                    F.col("right.{}".format(self._idCol)).alias("id2"))
+
         # join base prediction and dataset
-        joined = self._baseDataset.alias("actual") \
-            .join(dataset.alias("pred"),
-                  F.col("actual.{}".format(self._baseIdCol)) == F.col("pred.{}".format(self._idCol))) \
-            .select(F.col("actual.{}".format(self._basePredictionCol)).alias("aclust"),
-                    F.col("pred.{}".format(self._predictionCol)).alias("pclust"))
-
-        # sampling
-        if self._sampleSize is not None:
-            joined = joined.sample(True, self._sampleSize)
-        joined.cache().collect()
-
-        df_cf = joined.alias("left").crossJoin(joined.alias("right")) \
-            .withColumn("aset", F.col("left.pclust") == F.col("right.pclust")) \
-            .withColumn("pset", F.col("left.aclust") == F.col("right.aclust")) \
-            .groupby("aset", "pset").agg(F.count("*").alias("cnt"))
-        cf = df_cf.toPandas()
+        truePositive = basePositive.join(predPositive, ["id1", "id2"])
 
         # compute metrics
         from scipy import stats
-        cnt_pp = cf[(cf.aset == True) & (cf.pset == True)].cnt.sum()
-        cnt_pn = cf[(cf.aset == True) & (cf.pset == False)].cnt.sum()
-        cnt_np = cf[(cf.aset == False) & (cf.pset == True)].cnt.sum()
-        precision = cnt_pp / (cnt_pp + cnt_pn)
-        recall = cnt_pp / (cnt_pp + cnt_np)
+        basePositiveSize = basePositive.count()
+        predPositiveSize = predPositive.count()
+        truePositiveSize = truePositive.count()
+        precision = truePositiveSize / predPositiveSize
+        recall = truePositiveSize / basePositiveSize
         f_value = stats.hmean([precision, recall])
 
         if self._metricName == "precision":

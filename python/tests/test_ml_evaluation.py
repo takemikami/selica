@@ -20,3 +20,4 @@ class TestCases(unittest.TestCase):
 
         diff_rate2 = evaluator.evaluate(predictions2)
         self.assertTrue(diff_rate2 > 0 and diff_rate2 < 1.0)
+        self.assertEqual(0.7692307692307692, diff_rate2)

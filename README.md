@@ -1,7 +1,7 @@
 selica
 ---
 
-[![Build Status](https://travis-ci.org/takemikami/selica.svg?branch=master)](https://travis-ci.org/takemikami/selica)
+[![CircleCI](https://circleci.com/gh/takemikami/selica.svg?style=svg)](https://circleci.com/gh/takemikami/selica)
 [![Coverage Status](https://coveralls.io/repos/github/takemikami/selica/badge.svg)](https://coveralls.io/github/takemikami/selica)
 [![Scaladoc](https://img.shields.io/badge/scaladoc-here-yellowgreen.svg)](http://javadoc.io/doc/com.github.takemikami/selica_2.11/)
 [![Gitbook](https://img.shields.io/badge/gitbook-here-yellowgreen.svg)](https://takemikami.gitbooks.io/selica-programming-guide/content/en/)

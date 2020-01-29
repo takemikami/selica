@@ -25,4 +25,5 @@ selica implements following algorithms.
 - [Recommender](./recommender.md)
    - item-based collaborative filtering recommendation
    - feature similarity recommendation
+* [Frequent Pattern Mining](./frequent-pattern-mining.md)
 - [Japanese Tokenizer](./japanese-tokenizer.md)

@@ -56,6 +56,8 @@ model.similarityDataFrame.show()
 
 ## Build and execute
 
+### Scala
+
 build selica.
 
 ```
@@ -71,3 +73,20 @@ $ spark-shell --jars target/scala-2.11/selica-assembly-*-SNAPSHOT.jar
 ```
 
 and then execute example.
+
+### Python
+
+create python environment.
+
+```
+$ cd python
+$ python -m venv venv
+$ . venv/bin/activate
+$ pip install -r requirements.txt
+```
+
+set SPARK_HOME environment variable, and execute unit tests.
+
+```
+$ pytest tests/
+```
